@@ -10,7 +10,7 @@ export default function GPCSearch() {
   const searchWord = async () => {
     setDefinition('Searching...');
     try {
-      const response = await axios.get(`http://localhost:3001/api/lookup`, {
+      const response = await axios.get(`https://welsh-trainer.onrender.com`, {
         params: { word: query, lang },
       });
 
