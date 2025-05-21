@@ -38,3 +38,12 @@ export async function cacheWord(newWord: Word): Promise<void> {
     console.error('Failed to cache word', e);
   }
 }
+
+export async function clearCache(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(CACHE_KEY);
+  } catch (e) {
+    console.error('Failed to clear cache', e);
+    throw e;
+  }
+}

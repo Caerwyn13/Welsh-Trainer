@@ -11,6 +11,57 @@ export type XMLWord = {
 let cachedWords: XMLWord[] | null = null;
 
 /**
+ * Helper function to extract text content and part of speech from XML elements
+ */
+function extractTextAndPos(element: any): { text: string; pos?: string } {
+  if (typeof element === 'string') {
+    return { text: element.trim() };
+  }
+
+  if (!element) {
+    return { text: '' };
+  }
+
+  let text = '';
+  let pos: string | undefined;
+
+  // Handle different possible structures
+  if (typeof element['#text'] === 'string') {
+    text = element['#text'].trim();
+  } else if (typeof element === 'object') {
+    // If element is an object, it might have text content directly
+    // or we need to extract it from mixed content
+    const keys = Object.keys(element);
+    
+    // Look for direct text content
+    for (const key of keys) {
+      if (key !== 's' && typeof element[key] === 'string') {
+        text = element[key].trim();
+        break;
+      }
+    }
+    
+    // If no direct text found, try to concatenate text nodes
+    if (!text && element['#text']) {
+      text = String(element['#text']).trim();
+    }
+  }
+
+  // Look for <s> tag with n attribute for part of speech
+  if (element.s) {
+    if (typeof element.s === 'object' && element.s.n) {
+      pos = element.s.n;
+    } else if (Array.isArray(element.s)) {
+      // Handle case where there might be multiple <s> tags
+      const sTag = element.s.find((s: any) => s.n);
+      if (sTag) pos = sTag.n;
+    }
+  }
+
+  return { text, pos };
+}
+
+/**
  * Loads the Welsh-English dictionary from the local XML asset.
  */
 export async function loadDictionary(): Promise<XMLWord[]> {
@@ -28,61 +79,59 @@ export async function loadDictionary(): Promise<XMLWord[]> {
       attributeNamePrefix: '',
       textNodeName: '#text',
       parseAttributeValue: true,
-      isArray: (name, jpath) => {
-        // Ensure r/p is always treated as an array
-        if (name === 'p' && jpath.endsWith('r.p')) return true;
-        return false;
-      },
+      trimValues: true,
+      parseTagValue: false,
+      processEntities: true,
     });
     const parsed = parser.parse(xmlContent);
 
-    // Navigate to entries array
-    const entries: any[] = parsed?.dictionary?.section?.e ?? [];
+    // Navigate to entries array - adjust path based on your XML structure
+    let entries: any[] = [];
+    
+    // Try different possible paths to find the entries
+    if (parsed?.dictionary?.section?.e) {
+      entries = Array.isArray(parsed.dictionary.section.e) ? parsed.dictionary.section.e : [parsed.dictionary.section.e];
+    } else if (parsed?.dictionary?.e) {
+      entries = Array.isArray(parsed.dictionary.e) ? parsed.dictionary.e : [parsed.dictionary.e];
+    } else if (parsed?.e) {
+      entries = Array.isArray(parsed.e) ? parsed.e : [parsed.e];
+    }
+
+    console.log('Found entries:', entries.length);
 
     // Parse each entry
-    const words: XMLWord[] = entries.map((entry) => {
-      // Each <e> has a <p>, which contains <l> and <r>
-      const p = entry?.p;
-      
-      // Get the part of speech from the entry attributes
-      const partOfSpeech = entry?.pos || '';
-
-      // <l> can be a string or an object with #text
-      let lemma = '';
-      if (typeof p?.l === 'string') {
-        lemma = p.l;
-      } else if (p?.l?.['#text']) {
-        lemma = p.l['#text'];
-      }
-
-      // <r> contains one or multiple <p> elements (translations)
-      let englishText = '';
-      if (p?.r) {
-        const r = p.r;
-
-        if (Array.isArray(r.p)) {
-          // Multiple translations
-          englishText = r.p
-            .map((pt: any) =>
-              typeof pt === 'string' ? pt : pt?.['#text'] ?? ''
-            )
-            .filter((t: string) => t.length > 0)
-            .join(', ');
-        } else if (typeof r.p === 'string') {
-          englishText = r.p;
-        } else if (r.p?.['#text']) {
-          englishText = r.p['#text'];
+    const words = entries
+      .map((entry) => {
+        const p = entry?.p;
+        
+        if (!p) {
+          console.warn('Entry missing p element:', entry);
+          return null;
         }
-      }
 
-      return {
-        welsh: lemma.trim(),
-        english: englishText.trim(),
-        type: partOfSpeech || undefined,
-      };
-    });
+        // Extract Welsh text and pos from <l> element
+        const welshData = extractTextAndPos(p.l);
+        
+        // Extract English text from <r> element
+        const englishData = extractTextAndPos(p.r);
 
-    cachedWords = words.filter(word => word.welsh && word.english);
+        // Use Welsh pos if available, otherwise English pos
+        const partOfSpeech = welshData.pos || englishData.pos;
+
+        return {
+          welsh: welshData.text,
+          english: englishData.text,
+          type: partOfSpeech,
+        } as XMLWord;
+      })
+      .filter((word): word is XMLWord => 
+        word !== null && word.welsh.length > 0 && word.english.length > 0
+      );
+
+    console.log('Parsed words:', words.length);
+    console.log('Sample words:', words.slice(0, 5));
+
+    cachedWords = words;
     return cachedWords;
   } catch (error) {
     console.error('Failed to load dictionary:', error);
@@ -102,7 +151,14 @@ export async function searchDictionary(
   const words = await loadDictionary();
   const normalizedQuery = query.trim().toLowerCase();
 
-  return words.filter((word) =>
+  console.log('Searching for:', normalizedQuery, 'in', lang);
+  console.log('Total words to search:', words.length);
+
+  const results = words.filter((word) =>
     word[lang].toLowerCase().includes(normalizedQuery)
   );
+
+  console.log('Search results:', results.length);
+  
+  return results;
 }

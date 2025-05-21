@@ -5,6 +5,7 @@ import HomeScreen from './HomeScreen';
 import DictionaryScreen from './DictionaryScreen';
 import QuizSetupScreen from './QuizSetupScreen';
 import QuizScreen from './QuizScreen';
+import SettingsScreen from './SettingsScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -14,6 +15,7 @@ export type RootStackParamList = {
     mode: 'multiple' | 'typed';
     direction: 'welshToEnglish' | 'englishToWelsh';
   };
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -26,6 +28,7 @@ export default function App() {
         <Stack.Screen name="Dictionary" component={DictionaryScreen} />
         <Stack.Screen name="QuizSetup" component={QuizSetupScreen} />
         <Stack.Screen name="Quiz" component={QuizScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

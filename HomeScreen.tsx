@@ -25,6 +25,14 @@ export default function HomeScreen({ navigation }: Props) {
       >
         <Text style={styles.cardText}>❓ Vocab Quiz</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate('Settings')}
+        >
+        <Text style={styles.cardText}>⚙️ Settings</Text>
+        </TouchableOpacity>
     </View>
   );
 }
