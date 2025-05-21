@@ -68,7 +68,7 @@ export async function loadDictionary(): Promise<XMLWord[]> {
   if (cachedWords) return cachedWords;
 
   try {
-    const asset = Asset.fromModule(require('./assets/dictionary.xml'));
+    const asset = Asset.fromModule(require('../assets/dictionary.xml'));
     await asset.downloadAsync();
 
     const xmlContent = await readAsStringAsync(asset.localUri!);

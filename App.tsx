@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from './HomeScreen';
-import DictionaryScreen from './DictionaryScreen';
-import QuizSetupScreen from './QuizSetupScreen';
-import QuizScreen from './QuizScreen';
-import SettingsScreen from './SettingsScreen';
+import HomeScreen from './screens/HomeScreen';
+import DictionaryScreen from './screens/DictionaryScreen';
+import QuizSetupScreen from './screens/QuizSetupScreen';
+import QuizScreen from './screens/QuizScreen';
+import SettingsScreen from './screens/SettingsScreen';
 
 export type RootStackParamList = {
   Home: undefined;

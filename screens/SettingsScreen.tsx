@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
-import { clearCache, getCachedWords } from './wordCache';
+import { clearCache, getCachedWords, translateMissingWords } from '../utils/wordCache';
 
 export default function SettingsScreen() {
   const [cachedWordCount, setCachedWordCount] = useState<number>(0);
   const [isClearing, setIsClearing] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   useEffect(() => {
     loadCacheInfo();
@@ -19,6 +20,29 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleTranslateMissing = async () => {
+    setIsTranslating(true);
+    try {
+      const translatedCount = await translateMissingWords();
+      await loadCacheInfo(); // Refresh the cache info
+      
+      if (translatedCount > 0) {
+        Alert.alert(
+          'Translation Complete', 
+          `Successfully translated ${translatedCount} words!`
+        );
+      } else {
+        Alert.alert(
+          'No Translation Needed', 
+          'All your saved words already have translations.'
+        );
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to translate words. Please check your internet connection and try again.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
   const handleClearCache = () => {
     Alert.alert(
       'Clear Cache',
@@ -59,6 +83,23 @@ export default function SettingsScreen() {
           You have <Text style={styles.highlightText}>{cachedWordCount}</Text> saved words
         </Text>
       </View>
+
+      <TouchableOpacity
+        style={[
+          styles.actionButton,
+          isTranslating && styles.disabledButton
+        ]}
+        activeOpacity={0.7}
+        onPress={handleTranslateMissing}
+        disabled={isTranslating || cachedWordCount === 0}
+      >
+        <Text style={[
+          styles.actionButtonText,
+          (isTranslating || cachedWordCount === 0) && styles.disabledButtonText
+        ]}>
+          {isTranslating ? 'Translating...' : 'Auto-Translate Missing Words'}
+        </Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={[

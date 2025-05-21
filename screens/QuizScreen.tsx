@@ -10,8 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from './App';
-import { getCachedWords } from './wordCache'; // <-- new function to get cached words
+import { RootStackParamList } from '../App';
+import { getCachedWords } from '../utils/wordCache'; // <-- new function to get cached words
 
 type Props = {
   route: RouteProp<RootStackParamList, 'Quiz'>;

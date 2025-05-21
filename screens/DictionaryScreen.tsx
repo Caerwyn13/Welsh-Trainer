@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, FlatList } from 'react-native';
 
-import { searchDictionary } from './xmlDictionary';
-import { cacheWord, getCachedWords } from './wordCache';
+import { searchDictionary } from '../utils/xmlDictionary';
+import { cacheWord } from '../utils/wordCache';
 
 type Match = {
   matchId: string;
@@ -23,16 +23,21 @@ export default function GPCSearch() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Modified searchWord to:
-  // - Include all partial matches containing the query
-  // - Prioritize exact matches at the top
-  const searchWord = async () => {
+  // Function to search the dictionary
+  // This function is called when the user submits a search query
+ const searchWord = async () => {
     const trimmedQuery = query.trim();
+
     if (!trimmedQuery) {
       setErrorMsg('Please enter a word.');
       setMatches([]);
       setSelectedMatch(null);
       setDefinitions([]);
+      return;
+    }
+
+    if (!lang) {
+      setErrorMsg('Language not selected.');
       return;
     }
 
