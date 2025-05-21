@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from './App';
-import { words } from './words';
+import { getCachedWords } from './wordCache'; // <-- new function to get cached words
 
 type Props = {
   route: RouteProp<RootStackParamList, 'Quiz'>;
@@ -18,6 +19,10 @@ type Props = {
 
 export default function QuizScreen({ route }: Props) {
   const { mode, direction } = route.params;
+
+  const [words, setWords] = useState<{ welsh: string; english: string; type?: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [questionWord, setQuestionWord] = useState('');
   const [answer, setAnswer] = useState('');
   const [options, setOptions] = useState<string[]>([]);
@@ -30,9 +35,38 @@ export default function QuizScreen({ route }: Props) {
   const normalize = (s: string) =>
     s.toLowerCase().replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').trim();
 
+  // Load cached words on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const cachedWords = await getCachedWords();
+        if (cachedWords.length === 0) {
+          Alert.alert(
+            'No words found',
+            'No words are cached yet. Please use the dictionary to add words before starting a quiz.'
+          );
+        }
+        setWords(
+          cachedWords
+            .filter((w) => typeof w.welsh === 'string' && typeof w.english === 'string')
+            .map((w) => ({
+              welsh: w.welsh as string,
+              english: w.english as string,
+            }))
+        );
+      } catch (e) {
+        Alert.alert('Error loading words', 'Failed to load cached words.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
   const getRandomWord = () => words[Math.floor(Math.random() * words.length)];
 
   const getQuestion = () => {
+    if (words.length === 0) return;
+
     const w = getRandomWord();
     const correct = direction === 'welshToEnglish' ? w.english : w.welsh;
     const prompt = direction === 'welshToEnglish' ? w.welsh : w.english;
@@ -43,22 +77,22 @@ export default function QuizScreen({ route }: Props) {
     setTypedAnswer('');
 
     if (mode === 'multiple') {
-      const distractors = words
-        .map(x => (direction === 'welshToEnglish' ? x.english : x.welsh))
-        .filter(x => normalize(x) !== normalize(correct))
+      const distractors: string[] = words
+        .map((x) => (direction === 'welshToEnglish' ? x.english : x.welsh))
+        .filter((x) => normalize(x) !== normalize(correct))
         .sort(() => Math.random() - 0.5)
         .slice(0, 3);
       setOptions([...distractors, correct].sort(() => Math.random() - 0.5));
     }
   };
 
-  const nextQuestion = () => setQuestionCount(q => q + 1);
+  const nextQuestion = () => setQuestionCount((q) => q + 1);
 
   const handleMultiple = (choice: string) => {
     setSelected(choice);
     setTimeout(() => {
       normalize(choice) === normalize(answer)
-        ? (Alert.alert('✅ Correct!'), setScore(s => s + 1))
+        ? (Alert.alert('✅ Correct!'), setScore((s) => s + 1))
         : Alert.alert('❌ Wrong', `Answer: ${answer}`);
       nextQuestion();
     }, 300);
@@ -67,12 +101,33 @@ export default function QuizScreen({ route }: Props) {
   const handleTyped = () => {
     const correct = normalize(typedAnswer) === normalize(answer);
     correct
-      ? (Alert.alert('✅ Correct!'), setScore(s => s + 1))
+      ? (Alert.alert('✅ Correct!'), setScore((s) => s + 1))
       : Alert.alert('❌ Wrong', `Answer: ${answer}`);
     nextQuestion();
   };
 
-  useEffect(getQuestion, [questionCount]);
+  useEffect(() => {
+    if (!loading) {
+      getQuestion();
+    }
+  }, [questionCount, loading]);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#558B2F" />
+        <Text>Loading words...</Text>
+      </View>
+    );
+  }
+
+  if (words.length === 0) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>No cached words available for the quiz.</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -85,13 +140,10 @@ export default function QuizScreen({ route }: Props) {
         <Text style={styles.word}>{questionWord}</Text>
 
         {mode === 'multiple' ? (
-          options.map(opt => (
+          options.map((opt) => (
             <TouchableOpacity
               key={opt}
-              style={[
-                styles.option,
-                selected === opt && styles.optionSelected,
-              ]}
+              style={[styles.option, selected === opt && styles.optionSelected]}
               activeOpacity={0.7}
               disabled={!!selected}
               onPress={() => handleMultiple(opt)}
@@ -107,11 +159,7 @@ export default function QuizScreen({ route }: Props) {
               value={typedAnswer}
               onChangeText={setTypedAnswer}
             />
-            <TouchableOpacity
-              style={styles.submit}
-              activeOpacity={0.8}
-              onPress={handleTyped}
-            >
+            <TouchableOpacity style={styles.submit} activeOpacity={0.8} onPress={handleTyped}>
               <Text style={styles.submitText}>Submit</Text>
             </TouchableOpacity>
           </>
