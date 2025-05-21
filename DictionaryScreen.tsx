@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, FlatList } from 'react-native';
 import axios from 'axios';
 
 type Match = {
@@ -8,7 +8,7 @@ type Match = {
 };
 
 type Definition = {
-  pos?: string; // part of speech
+  pos?: string;
   defText: string;
 };
 
@@ -39,27 +39,85 @@ export default function GPCSearch() {
     try {
       const mode = lang === 'english' ? 2 : 1;
       const searchUrl = `https://welsh-dictionary.ac.uk/gpc/servlet?func=search&str=${encodeURIComponent(query)}&first=0&max=20&mode=${mode}&user=JS-800509a27d53b2ebd993033281540897`;
-      const searchResp = await axios.get(searchUrl);
 
-      // Extract matches from <match> tags
-      const matchRegex = /<match>[\s\S]*?<matchheadword>(.*?)<\/matchheadword>[\s\S]*?<matchid>(.*?)<\/matchid>[\s\S]*?<\/match>/g;
+      console.log(`Searching: ${searchUrl}`);
+      const searchResp = await axios.get(searchUrl);
+      console.log('Got search response, length:', searchResp.data.length);
+      console.log('Response sample:', searchResp.data.substring(0, 500));
+
       const foundMatches: Match[] = [];
-      let m;
-      while ((m = matchRegex.exec(searchResp.data)) !== null) {
-        // Remove HTML tags from headword (e.g. <b>, <sup>)
-        const headwordRaw = m[1];
-        const headwordClean = headwordRaw.replace(/<[^>]+>/g, '').trim();
-        foundMatches.push({ matchId: m[2], headword: headwordClean });
+
+      const headwordRegex = /<match>\s*<matchHeadword>([\s\S]*?)<\/matchHeadword>\s*<matchId>([^<]+)<\/matchId>\s*<\/match>/g;
+      let matchResult;
+
+      while ((matchResult = headwordRegex.exec(searchResp.data)) !== null) {
+        const headwordRaw = matchResult[1];
+        const matchId = matchResult[2].trim(); // THIS is the actual ID
+        const headword = headwordRaw.replace(/<[^>]+>/g, '').trim(); // Strip <b> tags, etc.
+
+        foundMatches.push({ matchId, headword });
+
+        console.log(`Found match (simple): ${headword}, ID: ${matchId}`);
+      }
+
+
+      if (foundMatches.length === 0) {
+        const traditionalRegex = /<match>[\s\S]*?<matchheadword>(.*?)<\/matchheadword>[\s\S]*?<matchid>(.*?)<\/matchid>[\s\S]*?<\/match>/g;
+
+        while ((matchResult = traditionalRegex.exec(searchResp.data)) !== null) {
+          const headwordRaw = matchResult[1];
+          const headwordClean = headwordRaw.replace(/<[^>]+>/g, '').trim();
+          const matchId = matchResult[2].trim();
+          foundMatches.push({ matchId, headword: headwordClean });
+          console.log(`Found match (traditional): ${headwordClean}, ID: ${matchId}`);
+        }
+      }
+
+      if (foundMatches.length === 0) {
+        const idMatch = searchResp.data.match(/<matchid>([^<]+)<\/matchid>/);
+        const headwordMatch = searchResp.data.match(/<matchheadword>([^<]+)<\/matchheadword>/);
+
+        if (idMatch && headwordMatch) {
+          const matchId = idMatch[1].trim();
+          const headword = headwordMatch[1].replace(/<[^>]+>/g, '').trim();
+          foundMatches.push({ matchId, headword });
+          console.log(`Found match (fallback): ${headword}, ID: ${matchId}`);
+        }
+      }
+
+      // Handle Welsh direct lookup if nothing found
+      if (lang === 'welsh' && foundMatches.length === 0) {
+        console.log('No matches found through parsing, attempting direct lookup for Welsh word');
+        const directEntryUrl = `https://welsh-dictionary.ac.uk/gpc/servlet?func=entry&str=${encodeURIComponent(query)}&user=JS-800509a27d53b2ebd993033281540897`;
+
+        try {
+          const directResp = await axios.get(directEntryUrl);
+          console.log('Got direct entry response:', directResp.data.length);
+
+          const syntheticMatch: Match = {
+            matchId: query,
+            headword: query
+          };
+
+          setMatches([syntheticMatch]);
+          await fetchDefinition(syntheticMatch);
+          return;
+        } catch (directError) {
+          console.error('Direct lookup failed:', directError);
+        }
       }
 
       if (foundMatches.length === 0) {
         setErrorMsg('No match found.');
       } else {
         setMatches(foundMatches);
+        if (lang === 'welsh' && foundMatches.length > 0) {
+          await fetchDefinition(foundMatches[0]);
+        }
       }
     } catch (error) {
-      console.error(error);
-      setErrorMsg('Error fetching search results.');
+      console.error('Search error:', error);
+      setErrorMsg('Error fetching search results. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -72,49 +130,56 @@ export default function GPCSearch() {
     setErrorMsg('');
 
     try {
-      const entryUrl = `https://welsh-dictionary.ac.uk/gpc/servlet?func=entry&id=${match.matchId}&user=JS-800509a27d53b2ebd993033281540897`;
-      const entryResp = await axios.get(entryUrl);
-
-      // Parse headword, part of speech, definitions from XML
-      // Definitions are often inside <sense> or <definition> tags
-      
-      const xml = entryResp.data;
-
-      // Extract main headword (optional, fallback to selectedMatch.headword)
-      const headwordMatch = xml.match(/<headword>([\s\S]*?)<\/headword>/);
-      const headword = headwordMatch ? headwordMatch[1].replace(/<[^>]+>/g, '').trim() : match.headword;
-
-      // Extract part of speech
-      const posMatch = xml.match(/<pos>([\s\S]*?)<\/pos>/);
-      const pos = posMatch ? posMatch[1].trim() : undefined;
-
-      // Extract multiple definitions
-      // Use <definition> or <sense> tags; sometimes nested
-      const defMatches = [...xml.matchAll(/<definition>([\s\S]*?)<\/definition>/g)];
-      let defs: Definition[] = [];
-
-      if (defMatches.length > 0) {
-        defs = defMatches.map((d) => ({
-          defText: d[1].replace(/<[^>]+>/g, '').trim(),
-        }));
-      } else {
-        // fallback: single <definition> content
-        const defMatch = xml.match(/<definition>([\s\S]*?)<\/definition>/);
-        if (defMatch) {
-          defs = [{ defText: defMatch[1].replace(/<[^>]+>/g, '').trim() }];
-        }
+      let entryUrl = `https://welsh-dictionary.ac.uk/gpc/servlet?func=entry&id=${match.matchId}&user=JS-800509a27d53b2ebd993033281540897`;
+      if (match.matchId === match.headword) {
+        entryUrl = `https://welsh-dictionary.ac.uk/gpc/servlet?func=entry&str=${encodeURIComponent(match.headword)}&user=JS-800509a27d53b2ebd993033281540897`;
       }
 
-      if (defs.length === 0) {
-        setErrorMsg('No definition found.');
+      console.log(`Fetching definition: ${entryUrl}`);
+      const entryResp = await axios.get(entryUrl);
+      console.log('Got definition response, length:', entryResp.data.length);
+
+      const xml = entryResp.data;
+      console.log("Definition response sample:", xml.substring(0, 300));
+
+      const paragraphRegex = /<p[^>]*>([\s\S]*?)<\/p>/g;
+      const paragraphs: string[] = [];
+      let paragraphMatch;
+
+      while ((paragraphMatch = paragraphRegex.exec(xml)) !== null) {
+        const cleanParagraph = paragraphMatch[1]
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<[^>]+>/g, '')
+          .trim();
+        if (cleanParagraph) paragraphs.push(cleanParagraph);
+      }
+
+      const posMatch = xml.match(/<pos>([\s\S]*?)<\/pos>/);
+      const pos = posMatch ? posMatch[1].replace(/<[^>]+>/g, '').trim() : undefined;
+
+      if (paragraphs.length === 0) {
+        const defMatches = [...xml.matchAll(/<definition>([\s\S]*?)<\/definition>/g)];
+
+        if (defMatches.length > 0) {
+          const defs: Definition[] = defMatches.map((d) => ({
+            defText: d[1].replace(/<[^>]+>/g, '').trim(),
+          }));
+
+          if (pos && defs.length > 0) defs[0].pos = pos;
+          setDefinitions(defs);
+        } else {
+          setErrorMsg('No definition content found.');
+        }
       } else {
-        // Include pos on first definition if available
-        if (pos) defs[0].pos = pos;
+        const defs: Definition[] = paragraphs.map((text, index) => {
+          if (index === 0 && pos) return { defText: text, pos };
+          return { defText: text };
+        });
         setDefinitions(defs);
       }
     } catch (error) {
-      console.error(error);
-      setErrorMsg('Error fetching definition.');
+      console.error('Definition fetch error:', error);
+      setErrorMsg('Error fetching definition. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -122,11 +187,11 @@ export default function GPCSearch() {
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <Text style={styles.title}>GPC Welsh Dictionary Search</Text>
+      <Text style={styles.title}>GPC Welsh Dictionary</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Enter a word..."
+        placeholder={`Enter a ${lang} word...`}
         value={query}
         onChangeText={setQuery}
         autoCapitalize="none"
@@ -147,17 +212,26 @@ export default function GPCSearch() {
         </TouchableOpacity>
       </View>
 
-      <Button title="Search" onPress={searchWord} disabled={loading} />
+      <TouchableOpacity
+        style={styles.searchButton}
+        onPress={searchWord}
+        disabled={loading}
+      >
+        <Text style={styles.searchButtonText}>Search</Text>
+      </TouchableOpacity>
 
       {loading && <Text style={styles.status}>Loading...</Text>}
       {!!errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
-      {matches.length > 0 && (
+      {lang === 'english' && matches.length > 0 && (
         <>
-          <Text style={styles.matchesTitle}>Select a match:</Text>
+          <Text style={styles.matchesTitle}>
+            {matches.length} {matches.length === 1 ? 'Match' : 'Matches'} Found:
+          </Text>
           <FlatList
             data={matches}
             keyExtractor={(item) => item.matchId}
+            scrollEnabled={false}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={[
@@ -166,7 +240,12 @@ export default function GPCSearch() {
                 ]}
                 onPress={() => fetchDefinition(item)}
               >
-                <Text style={styles.matchText}>{item.headword}</Text>
+                <Text style={[
+                  styles.matchText,
+                  selectedMatch?.matchId === item.matchId && styles.matchTextSelected
+                ]}>
+                  {item.headword}
+                </Text>
               </TouchableOpacity>
             )}
           />
@@ -236,6 +315,18 @@ const styles = StyleSheet.create({
   langButtonTextActive: {
     color: '#FFFFFF',
   },
+  searchButton: {
+    backgroundColor: '#00796B',
+    borderRadius: 10,
+    paddingVertical: 12,
+    marginBottom: 20,
+  },
+  searchButtonText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   status: {
     marginVertical: 15,
     fontStyle: 'italic',
@@ -269,14 +360,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#004D40',
   },
+  matchTextSelected: {
+    color: '#FFFFFF',
+  },
   definitionContainer: {
     marginTop: 30,
+    marginBottom: 40,
     backgroundColor: '#E8F5E9',
     borderRadius: 12,
     padding: 20,
-    shadowColor: '#004D40',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
   },
   defHeadword: {
     fontSize: 26,
@@ -293,7 +385,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   definitionBlock: {
-    marginBottom: 12,
+    marginBottom: 18,
   },
   definitionText: {
     fontSize: 18,
