@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, FlatList, Modal } from 'react-native';
+
 
 import { searchDictionary } from '../utils/xmlDictionary';
 import { cacheWord } from '../utils/wordCache';
@@ -14,6 +15,21 @@ type Definition = {
   defText: string;
 };
 
+const posHelp = [
+  { abbr: 'n',     desc: 'Noun'         },
+  { abbr: 'np',    desc: 'Proper Noun'  },
+  { abbr: 'v',     desc: 'Verb'         },
+  { abbr: 'adj',   desc: 'Adjective'    },
+  { abbr: 'adv',   desc: 'Adverb'       },
+  { abbr: 'conj',  desc: 'Conjunction'  },
+  { abbr: 'prep',  desc: 'Preposition'  },
+  { abbr: 'intj',  desc: 'Interjection' },
+  { abbr: 'pron',  desc: 'Pronoun'      },
+  { abbr: 'vblex', desc: 'Lexical Verb' },
+  { abbr: 'vbser', desc: 'No clue :('   },
+];
+
+
 export default function GPCSearch() {
   const [query, setQuery] = useState('');
   const [lang, setLang] = useState<'welsh' | 'english'>('welsh');
@@ -22,6 +38,7 @@ export default function GPCSearch() {
   const [definitions, setDefinitions] = useState<Definition[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [helpVisible, setHelpVisible] = useState(false);
 
   // Function to search the dictionary
   // This function is called when the user submits a search query
@@ -232,6 +249,37 @@ export default function GPCSearch() {
       >
         <Text style={styles.searchButtonText}>Save Word</Text>
       </TouchableOpacity>
+
+            <TouchableOpacity
+        style={[styles.searchButton, { backgroundColor: '#004D40' }]}
+        onPress={() => setHelpVisible(true)}
+      >
+        <Text style={styles.searchButtonText}>Help</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={helpVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setHelpVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Part of Speech Abbreviations</Text>
+            {posHelp.map((item) => (
+              <Text key={item.abbr} style={styles.modalItem}>
+                <Text style={{ fontWeight: 'bold' }}>{item.abbr}</Text>: {item.desc}
+              </Text>
+            ))}
+            <TouchableOpacity
+              style={[styles.searchButton, { marginTop: 20 }]}
+              onPress={() => setHelpVisible(false)}
+            >
+              <Text style={styles.searchButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -360,5 +408,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 26,
     color: '#2E7D32',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+    color: '#004D40',
+  },
+  modalItem: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#333',
   },
 });
