@@ -13,6 +13,14 @@ export default function HomeScreen({ navigation }: Props) {
       <TouchableOpacity
         style={styles.card}
         activeOpacity={0.7}
+        onPress={() => navigation.navigate('LearnSelection')}
+      >
+        <Text style={styles.cardText}>📚 Learn</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
         onPress={() => navigation.navigate('Dictionary')}
       >
         <Text style={styles.cardText}>📖 Dictionary</Text>
