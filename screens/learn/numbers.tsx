@@ -1,223 +1,204 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../App';
 
-type NumberItem = {
-  welsh: string;
-  english: string;
-  number: number;
+type NumbersStackParamList = {
+  LearnSelectionScreen: undefined;
 };
 
-function shuffleArray(array: NumberItem[]): NumberItem[] {
-  return array
-    .map((item) => ({ item, sort: Math.random() }))
-    .sort((a, b) => a.sort - b.sort)
-    .map(({ item }) => item);
+interface NumberItem {
+  number: number;
+  english: string;
+  traditional: string;
+  modern: string;
 }
 
+// Traditional Welsh numbers (vigesimal system) - corrected version
+const traditional: { [key: number]: string } = {
+  1: 'un', 2: 'dau', 3: 'tri', 4: 'pedwar', 5: 'pump', 6: 'chwech', 7: 'saith', 8: 'wyth', 9: 'naw', 10: 'deg',
+  11: 'un ar ddeg', 12: 'deuddeg', 13: 'tri ar ddeg', 14: 'pedwar ar ddeg', 15: 'pymtheg', 16: 'un ar bymtheg', 17: 'dau ar bymtheg', 18: 'tri ar bymtheg', 19: 'pedwar ar bymtheg', 20: 'ugain',
+  21: 'un ar hugain', 22: 'dau ar hugain', 23: 'tri ar hugain', 24: 'pedwar ar hugain', 25: 'pump ar hugain', 26: 'chwech ar hugain', 27: 'saith ar hugain', 28: 'wyth ar hugain', 29: 'naw ar hugain', 30: 'deg ar hugain',
+  31: 'un ar ddeg ar hugain', 32: 'dau ar ddeg ar hugain', 33: 'tri ar ddeg ar hugain', 34: 'pedwar ar ddeg ar hugain', 35: 'pump ar ddeg ar hugain', 36: 'chwech ar ddeg ar hugain', 37: 'saith ar ddeg ar hugain', 38: 'wyth ar ddeg ar hugain', 39: 'naw ar ddeg ar hugain', 40: 'deugain',
+  41: 'un ar ddeugain', 42: 'dau ar ddeugain', 43: 'tri ar ddeugain', 44: 'pedwar ar ddeugain', 45: 'pump ar ddeugain', 46: 'chwech ar ddeugain', 47: 'saith ar ddeugain', 48: 'wyth ar ddeugain', 49: 'naw ar ddeugain', 50: 'hanner cant',
+  51: 'un ar hanner cant', 52: 'dau ar hanner cant', 53: 'tri ar hanner cant', 54: 'pedwar ar hanner cant', 55: 'pump ar hanner cant', 56: 'chwech ar hanner cant', 57: 'saith ar hanner cant', 58: 'wyth ar hanner cant', 59: 'naw ar hanner cant', 60: 'trigain',
+  61: 'un ar drigain', 62: 'dau ar drigain', 63: 'tri ar drigain', 64: 'pedwar ar drigain', 65: 'pump ar drigain', 66: 'chwech ar drigain', 67: 'saith ar drigain', 68: 'wyth ar drigain', 69: 'naw ar drigain', 70: 'deg a thrigain',
+  71: 'un ar ddeg a thrigain', 72: 'dau ar ddeg a thrigain', 73: 'tri ar ddeg a thrigain', 74: 'pedwar ar ddeg a thrigain', 75: 'pump ar ddeg a thrigain', 76: 'chwech ar ddeg a thrigain', 77: 'saith ar ddeg a thrigain', 78: 'wyth ar ddeg a thrigain', 79: 'naw ar ddeg a thrigain', 80: 'pedwar ugain',
+  81: 'un ar bedwar ugain', 82: 'dau ar bedwar ugain', 83: 'tri ar bedwar ugain', 84: 'pedwar ar bedwar ugain', 85: 'pump ar bedwar ugain', 86: 'chwech ar bedwar ugain', 87: 'saith ar bedwar ugain', 88: 'wyth ar bedwar ugain', 89: 'naw ar bedwar ugain', 90: 'deg a phedwar ugain',
+  91: 'un ar ddeg a phedwar ugain', 92: 'dau ar ddeg a phedwar ugain', 93: 'tri ar ddeg a phedwar ugain', 94: 'pedwar ar ddeg a phedwar ugain', 95: 'pump ar ddeg a phedwar ugain', 96: 'chwech ar ddeg a phedwar ugain', 97: 'saith ar ddeg a phedwar ugain', 98: 'wyth ar ddeg a phedwar ugain', 99: 'naw ar ddeg a phedwar ugain', 
+  100: 'cant'
+};
+
+// Modern Welsh numbers (decimal system) - proper implementation
+const modern: { [key: number]: string } = {
+  1: 'un', 2: 'dau', 3: 'tri', 4: 'pedwar', 5: 'pump', 6: 'chwech', 7: 'saith', 8: 'wyth', 9: 'naw', 10: 'deg',
+  11: 'un deg un', 12: 'un deg dau', 13: 'un deg tri', 14: 'un deg pedwar', 15: 'un deg pump', 16: 'un deg chwech', 17: 'un deg saith', 18: 'un deg wyth', 19: 'un deg naw', 20: 'dau ddeg',
+  21: 'dau ddeg un', 22: 'dau ddeg dau', 23: 'dau ddeg tri', 24: 'dau ddeg pedwar', 25: 'dau ddeg pump', 26: 'dau ddeg chwech', 27: 'dau ddeg saith', 28: 'dau ddeg wyth', 29: 'dau ddeg naw', 30: 'tri deg',
+  31: 'tri deg un', 32: 'tri deg dau', 33: 'tri deg tri', 34: 'tri deg pedwar', 35: 'tri deg pump', 36: 'tri deg chwech', 37: 'tri deg saith', 38: 'tri deg wyth', 39: 'tri deg naw', 40: 'pedwar deg',
+  41: 'pedwar deg un', 42: 'pedwar deg dau', 43: 'pedwar deg tri', 44: 'pedwar deg pedwar', 45: 'pedwar deg pump', 46: 'pedwar deg chwech', 47: 'pedwar deg saith', 48: 'pedwar deg wyth', 49: 'pedwar deg naw', 50: 'pum deg',
+  51: 'pum deg un', 52: 'pum deg dau', 53: 'pum deg tri', 54: 'pum deg pedwar', 55: 'pum deg pump', 56: 'pum deg chwech', 57: 'pum deg saith', 58: 'pum deg wyth', 59: 'pum deg naw', 60: 'chwe deg',
+  61: 'chwe deg un', 62: 'chwe deg dau', 63: 'chwe deg tri', 64: 'chwe deg pedwar', 65: 'chwe deg pump', 66: 'chwe deg chwech', 67: 'chwe deg saith', 68: 'chwe deg wyth', 69: 'chwe deg naw', 70: 'saith deg',
+  71: 'saith deg un', 72: 'saith deg dau', 73: 'saith deg tri', 74: 'saith deg pedwar', 75: 'saith deg pump', 76: 'saith deg chwech', 77: 'saith deg saith', 78: 'saith deg wyth', 79: 'saith deg naw', 80: 'wyth deg',
+  81: 'wyth deg un', 82: 'wyth deg dau', 83: 'wyth deg tri', 84: 'wyth deg pedwar', 85: 'wyth deg pump', 86: 'wyth deg chwech', 87: 'wyth deg saith', 88: 'wyth deg wyth', 89: 'wyth deg naw', 90: 'naw deg',
+  91: 'naw deg un', 92: 'naw deg dau', 93: 'naw deg tri', 94: 'naw deg pedwar', 95: 'naw deg pump', 96: 'naw deg chwech', 97: 'naw deg saith', 98: 'naw deg wyth', 99: 'naw deg naw', 
+  100: 'cant'
+};
+
+const generateNumberList = (): NumberItem[] => {
+  const list: NumberItem[] = [];
+  for (let i = 1; i <= 100; i++) {
+    list.push({
+      number: i,
+      english: i.toString(),
+      traditional: traditional[i] || '',
+      modern: modern[i] || '',
+    });
+  }
+  return list;
+};
+
 const WelshNumbers = () => {
-    const originalNumbers: NumberItem[] = [
-    { welsh: 'un', english: 'one', number: 1 },
-    { welsh: 'dau', english: 'two', number: 2 },
-    { welsh: 'tri', english: 'three', number: 3 },
-    { welsh: 'pedwar', english: 'four', number: 4 },
-    { welsh: 'pump', english: 'five', number: 5 },
-    { welsh: 'chwech', english: 'six', number: 6 },
-    { welsh: 'saith', english: 'seven', number: 7 },
-    { welsh: 'wyth', english: 'eight', number: 8 },
-    { welsh: 'naw', english: 'nine', number: 9 },
-    { welsh: 'deg', english: 'ten', number: 10 },
-    { welsh: 'un ar ddeg', english: 'eleven', number: 11 },
-    { welsh: 'deuddeg', english: 'twelve', number: 12 },
-    { welsh: 'tri ar ddeg', english: 'thirteen', number: 13 },
-    { welsh: 'pedwar ar ddeg', english: 'fourteen', number: 14 },
-    { welsh: 'pymtheg', english: 'fifteen', number: 15 },
-    { welsh: 'un ar bymtheg', english: 'sixteen', number: 16 },
-    { welsh: 'dau ar bymtheg', english: 'seventeen', number: 17 },
-    { welsh: 'deunaw', english: 'eighteen', number: 18 },
-    { welsh: 'pedwar ar bymtheg', english: 'nineteen', number: 19 },
-    { welsh: 'ugain', english: 'twenty', number: 20 },
-    { welsh: 'un ar hugain', english: 'twenty-one', number: 21 },
-    { welsh: 'dau ar hugain', english: 'twenty-two', number: 22 },
-    { welsh: 'tri ar hugain', english: 'twenty-three', number: 23 },
-    { welsh: 'pedwar ar hugain', english: 'twenty-four', number: 24 },
-    { welsh: 'pump ar hugain', english: 'twenty-five', number: 25 },
-    { welsh: 'chwech ar hugain', english: 'twenty-six', number: 26 },
-    { welsh: 'saith ar hugain', english: 'twenty-seven', number: 27 },
-    { welsh: 'wyth ar hugain', english: 'twenty-eight', number: 28 },
-    { welsh: 'naw ar hugain', english: 'twenty-nine', number: 29 },
-    { welsh: 'deg ar hugain', english: 'thirty', number: 30 },
-    { welsh: 'un ar ddeg ar hugain', english: 'thirty-one', number: 31 },
-    { welsh: 'dau ar ddeg ar hugain', english: 'thirty-two', number: 32 },
-    { welsh: 'tri ar ddeg ar hugain', english: 'thirty-three', number: 33 },
-    { welsh: 'pedwar ar ddeg ar hugain', english: 'thirty-four', number: 34 },
-    { welsh: 'pump ar ddeg ar hugain', english: 'thirty-five', number: 35 },
-    { welsh: 'chwech ar ddeg ar hugain', english: 'thirty-six', number: 36 },
-    { welsh: 'saith ar ddeg ar hugain', english: 'thirty-seven', number: 37 },
-    { welsh: 'wyth ar ddeg ar hugain', english: 'thirty-eight', number: 38 },
-    { welsh: 'naw ar ddeg ar hugain', english: 'thirty-nine', number: 39 },
-    { welsh: 'pedwar deg', english: 'forty', number: 40 },
-    { welsh: 'un ar bedwar deg', english: 'forty-one', number: 41 },
-    { welsh: 'dau ar bedwar deg', english: 'forty-two', number: 42 },
-    { welsh: 'tri ar bedwar deg', english: 'forty-three', number: 43 },
-    { welsh: 'pedwar ar bedwar deg', english: 'forty-four', number: 44 },
-    { welsh: 'pump ar bedwar deg', english: 'forty-five', number: 45 },
-    { welsh: 'chwech ar bedwar deg', english: 'forty-six', number: 46 },
-    { welsh: 'saith ar bedwar deg', english: 'forty-seven', number: 47 },
-    { welsh: 'wyth ar bedwar deg', english: 'forty-eight', number: 48 },
-    { welsh: 'naw ar bedwar deg', english: 'forty-nine', number: 49 },
-    { welsh: 'pum deg', english: 'fifty', number: 50 },
-    { welsh: 'un ar bum deg', english: 'fifty-one', number: 51 },
-    { welsh: 'dau ar bum deg', english: 'fifty-two', number: 52 },
-    { welsh: 'tri ar bum deg', english: 'fifty-three', number: 53 },
-    { welsh: 'pedwar ar bum deg', english: 'fifty-four', number: 54 },
-    { welsh: 'pump ar bum deg', english: 'fifty-five', number: 55 },
-    { welsh: 'chwech ar bum deg', english: 'fifty-six', number: 56 },
-    { welsh: 'saith ar bum deg', english: 'fifty-seven', number: 57 },
-    { welsh: 'wyth ar bum deg', english: 'fifty-eight', number: 58 },
-    { welsh: 'naw ar bum deg', english: 'fifty-nine', number: 59 },
-    { welsh: 'chwe deg', english: 'sixty', number: 60 },
-    { welsh: 'un ar chwe deg', english: 'sixty-one', number: 61 },
-    { welsh: 'dau ar chwe deg', english: 'sixty-two', number: 62 },
-    { welsh: 'tri ar chwe deg', english: 'sixty-three', number: 63 },
-    { welsh: 'pedwar ar chwe deg', english: 'sixty-four', number: 64 },
-    { welsh: 'pump ar chwe deg', english: 'sixty-five', number: 65 },
-    { welsh: 'chwech ar chwe deg', english: 'sixty-six', number: 66 },
-    { welsh: 'saith ar chwe deg', english: 'sixty-seven', number: 67 },
-    { welsh: 'wyth ar chwe deg', english: 'sixty-eight', number: 68 },
-    { welsh: 'naw ar chwe deg', english: 'sixty-nine', number: 69 },
-    { welsh: 'saith deg', english: 'seventy', number: 70 },
-    { welsh: 'un ar saith deg', english: 'seventy-one', number: 71 },
-    { welsh: 'dau ar saith deg', english: 'seventy-two', number: 72 },
-    { welsh: 'tri ar saith deg', english: 'seventy-three', number: 73 },
-    { welsh: 'pedwar ar saith deg', english: 'seventy-four', number: 74 },
-    { welsh: 'pump ar saith deg', english: 'seventy-five', number: 75 },
-    { welsh: 'chwech ar saith deg', english: 'seventy-six', number: 76 },
-    { welsh: 'saith ar saith deg', english: 'seventy-seven', number: 77 },
-    { welsh: 'wyth ar saith deg', english: 'seventy-eight', number: 78 },
-    { welsh: 'naw ar saith deg', english: 'seventy-nine', number: 79 },
-    { welsh: 'wyth deg', english: 'eighty', number: 80 },
-    { welsh: 'un ar wyth deg', english: 'eighty-one', number: 81 },
-    { welsh: 'dau ar wyth deg', english: 'eighty-two', number: 82 },
-    { welsh: 'tri ar wyth deg', english: 'eighty-three', number: 83 },
-    { welsh: 'pedwar ar wyth deg', english: 'eighty-four', number: 84 },
-    { welsh: 'pump ar wyth deg', english: 'eighty-five', number: 85 },
-    { welsh: 'chwech ar wyth deg', english: 'eighty-six', number: 86 },
-    { welsh: 'saith ar wyth deg', english: 'eighty-seven', number: 87 },
-    { welsh: 'wyth ar wyth deg', english: 'eighty-eight', number: 88 },
-    { welsh: 'naw ar wyth deg', english: 'eighty-nine', number: 89 },
-    { welsh: 'naw deg', english: 'ninety', number: 90 },
-    { welsh: 'un ar naw deg', english: 'ninety-one', number: 91 },
-    { welsh: 'dau ar naw deg', english: 'ninety-two', number: 92 },
-    { welsh: 'tri ar naw deg', english: 'ninety-three', number: 93 },
-    { welsh: 'pedwar ar naw deg', english: 'ninety-four', number: 94 },
-    { welsh: 'pump ar naw deg', english: 'ninety-five', number: 95 },
-    { welsh: 'chwech ar naw deg', english: 'ninety-six', number: 96 },
-    { welsh: 'saith ar naw deg', english: 'ninety-seven', number: 97 },
-    { welsh: 'wyth ar naw deg', english: 'ninety-eight', number: 98 },
-    { welsh: 'naw ar naw deg', english: 'ninety-nine', number: 99 },
-    { welsh: 'cant', english: 'one hundred', number: 100 },
-    ];
-
-
-  const [numbers, setNumbers] = useState<NumberItem[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showTranslation, setShowTranslation] = useState(false);
-
-  useEffect(() => {
-    setNumbers(shuffleArray(originalNumbers));
-  }, []);
-
-  const nextNumber = () => {
-    setCurrentIndex((prev) => (prev + 1) % numbers.length);
-    setShowTranslation(false);
-  };
-
-  if (numbers.length === 0) return null;
+  const navigation = useNavigation<NavigationProp<NumbersStackParamList>>();
+  const [useTraditional, setUseTraditional] = useState(true);
+  const numberList = generateNumberList();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Welsh Numbers</Text>
-      <View style={styles.card}>
-        <Text style={styles.number}>{numbers[currentIndex].number}</Text>
-        <Text style={styles.welsh}>{numbers[currentIndex].welsh}</Text>
-        {showTranslation && (
-          <Text style={styles.english}>{numbers[currentIndex].english}</Text>
-        )}
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>
+        Welsh Numbers: {useTraditional ? 'Traditional' : 'Modern'} System
+      </Text>
+
+      <View style={styles.langButtons}>
+        <TouchableOpacity
+          style={[styles.langButton, !useTraditional && styles.langButtonActive]}
+          onPress={() => setUseTraditional(false)}
+        >
+          <Text style={[styles.langButtonText, !useTraditional && styles.langButtonTextActive]}>Modern</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.langButton, useTraditional && styles.langButtonActive]}
+          onPress={() => setUseTraditional(true)}
+        >
+          <Text style={[styles.langButtonText, useTraditional && styles.langButtonTextActive]}>Traditional</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={nextNumber}>
-          <Text style={styles.buttonText}>Next Number</Text>
-        </TouchableOpacity>
+      <View style={styles.definitionContainer}>
+        <Text style={styles.defHeadword}>Traditional vs Modern Systems</Text>
+        <Text style={styles.definitionText}>
+          Welsh has two number systems: the traditional (vigesimal) system counts in twenties 
+          and is based on the number 20 (ugain). For example, 25 is "pump ar hugain" (five on twenty). 
+          The modern (decimal) system is simpler and follows decimal patterns like "dau ddeg pump" (two ten five) 
+          for 25, similar to how English works.
+        </Text>
+      </View>
+
+      <View style={styles.numbersContainer}>
+        {numberList.map(item => (
+          <View key={item.number} style={styles.matchItem}>
+            <Text style={styles.numberText}>{item.english}</Text>
+            <Text style={styles.welshText}>{useTraditional ? item.traditional : item.modern}</Text>
+          </View>
+        ))}
       </View>
     </ScrollView>
   );
 };
 
+export default WelshNumbers;
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F1F8E9',
     padding: 20,
-    paddingTop: 50,
-    flexGrow: 1,
-    alignItems: 'center',
+    paddingTop: 60,
+    backgroundColor: '#FAFAFA',
+    minHeight: '100%',
   },
-  header: {
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
+  },
+  backButtonText: {
+    fontSize: 18,
+    color: '#00796B',
+    fontWeight: '600',
+  },
+  title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#33691E',
+    marginBottom: 25,
+    color: '#004D40',
     textAlign: 'center',
-    marginBottom: 30,
   },
-  card: {
-    width: 280,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 30,
-    borderRadius: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
-    marginBottom: 30,
-  },
-  number: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#558B2F',
-    marginBottom: 10,
-  },
-  welsh: {
-    fontSize: 36,
-    color: '#33691E',
-    marginBottom: 10,
-    paddingLeft: 10,
-  },
-  english: {
-    fontSize: 24,
-    color: '#888',
-    marginTop: 8,
-  },
-  buttonContainer: {
-    width: '100%',
+  langButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
-  button: {
-    backgroundColor: '#33691E',
-    paddingVertical: 14,
+  langButton: {
+    borderWidth: 1,
+    borderColor: '#00796B',
+    borderRadius: 25,
+    paddingVertical: 8,
     paddingHorizontal: 20,
-    borderRadius: 8,
-    minWidth: 140,
-    alignItems: 'center',
-    elevation: 2,
+    marginHorizontal: 8,
+    backgroundColor: '#FFFFFF',
   },
-  buttonText: {
-    color: '#FFF',
+  langButtonActive: {
+    backgroundColor: '#00796B',
+  },
+  langButtonText: {
+    color: '#00796B',
     fontSize: 16,
     fontWeight: '600',
   },
+  langButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  definitionContainer: {
+    marginTop: 30,
+    marginBottom: 40,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 12,
+    padding: 20,
+  },
+  defHeadword: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#1B5E20',
+    textAlign: 'center',
+  },
+  definitionText: {
+    fontSize: 18,
+    lineHeight: 26,
+    color: '#2E7D32',
+  },
+  numbersContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  matchItem: {
+    width: '48%',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    backgroundColor: '#E0F2F1',
+    marginBottom: 10,
+  },
+  numberText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#004D40',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  welshText: {
+    fontSize: 16,
+    color: '#00695C',
+    textAlign: 'center',
+  },
 });
-
-export default WelshNumbers;

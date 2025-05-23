@@ -6,37 +6,41 @@ import { RootStackParamList } from '../App';
 
 type LearnCategoryRouteProp = RouteProp<RootStackParamList, 'LearnCategory'>;
 
-export const LearnCategory: React.FC = () => {
+export const LearnCategoryScreen: React.FC = () => {
     const route = useRoute<LearnCategoryRouteProp>();
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
     const { category } = route.params;
 
     React.useEffect(() => {
-        // Here you can add logic to load the appropriate content based on category
         switch (category) {
             case 'numbers':
                 navigation.navigate('Numbers');
                 break;
             case 'colours':
-                //TODO: Navigate to colours learning content
+                // TODO: Navigate to colours learning content
+                // navigation.replace('Colours');
                 break;
             case 'greetings':
-                //TODO: Navigate to greetings learning content
+                // TODO: Navigate to greetings learning content
+                // navigation.replace('Greetings');
                 break;
             case 'commonPhrases':
-                //TODO: Navigate to common phrases learning content
+                // TODO: Navigate to common phrases learning content
+                // navigation.replace('CommonPhrases');
                 break;
             case 'generalVocabulary':
-                //TODO: Navigate to general vocabulary learning content
+                // TODO: Navigate to general vocabulary learning content
+                // navigation.replace('GeneralVocabulary');
+                break;
             default:
-                // Handle unknown category or navigate back
+                // Handle unknown category by going back to HomeScreen
                 navigation.goBack();
         }
     }, [category, navigation]);
 
     return (
         <View style={styles.container}>
-            {/*TODO: add a loading indicator or temporary content here */}
+            {/* TODO: add a loading indicator or temporary content here */}
         </View>
     );
 };
@@ -49,4 +53,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default LearnCategory;
+export default LearnCategoryScreen;

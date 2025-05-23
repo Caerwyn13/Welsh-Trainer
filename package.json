@@ -13,6 +13,7 @@
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/native-stack": "^7.3.13",
+    "@shadcn/ui": "^0.0.4",
     "@types/react-native": "^0.73.0",
     "@types/react-navigation": "^3.4.0",
     "axios": "^1.9.0",
