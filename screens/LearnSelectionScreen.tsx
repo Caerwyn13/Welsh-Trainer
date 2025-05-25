@@ -1,4 +1,4 @@
-import Reac, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
@@ -6,47 +6,58 @@ import { RootStackParamList } from '../App';
 type Props = NativeStackScreenProps<RootStackParamList, 'LearnSelection'>;
 
 export default function LearnSelectionScreen({ navigation }: Props) {
-    const [selectedCategory, setSelectedCategory] = useState<'numbers' | 'colours' | 'greetings' | 'commonPhrases' | 'generalVocabulary' | 'grammar' | 'culture' | 'other'>('numbers');
-    const categories = [
-        { key: 'numbers', label: 'Numbers' },
-        { key: 'colours', label: 'Colours' },
-        { key: 'greetings', label: 'Greetings' },
-        { key: 'commonPhrases', label: 'Common Phrases' },
-        { key: 'generalVocabulary', label: 'General Vocabulary' },
-        { key: 'grammar', label: 'Grammar' },
-        { key: 'culture', label: 'Culture' },
-        { key: 'other', label: 'Other' },
-    ] as const;
+  const categories = [
+    { key: 'numbers', label: 'Numbers' },
+    { key: 'colours', label: 'Colours' },
+    { key: 'greetings', label: 'Greetings' },
+    { key: 'commonPhrases', label: 'Common Phrases' },
+    { key: 'generalVocabulary', label: 'General Vocabulary' },
+    { key: 'grammar', label: 'Grammar' },
+    { key: 'culture', label: 'Culture' },
+    { key: 'other', label: 'Other' },
+  ] as const;
 
-    return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.header}>Select a Learning Category</Text>
-            <Text style={styles.sectionTitle}>Choose a category to learn:</Text>
-            <View style={styles.optionsGrid}>
-                {categories.map(({ key, label }) => (
-                    <TouchableOpacity
-                        key={key}
-                        style={[styles.optionButton, selectedCategory === key && styles.optionButtonActive]}
-                        activeOpacity={0.7}
-                        onPress={() => setSelectedCategory(key)}
-                    >
-                        <Text style={[styles.optionText, selectedCategory === key && styles.optionTextActive]}>
-                            {label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-            <TouchableOpacity
-                style={styles.startButton}
-                activeOpacity={0.8}
-                onPress={() => {
-                    navigation.navigate('LearnCategory', { category: selectedCategory });
-                }}
-            >
-                <Text style={styles.startButtonText}>Start Learning</Text>
-            </TouchableOpacity>
-        </ScrollView>
-    )
+  const handleCategoryPress = (category: string) => {
+    switch (category) {
+      case 'numbers':
+        navigation.navigate('Numbers');
+        break;
+      case 'colours':
+        navigation.navigate('Colours');
+        break;
+      case 'greetings':
+        // TODO: navigation.navigate('Greetings');
+        break;
+      case 'commonPhrases':
+        // TODO: navigation.navigate('CommonPhrases');
+        break;
+      case 'generalVocabulary':
+        // TODO: navigation.navigate('GeneralVocabulary');
+        break;
+      default:
+        // Handle unknown category or incomplete screens
+        navigation.goBack();
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.header}>Select a Learning Category</Text>
+      <Text style={styles.sectionTitle}>Choose a category to learn:</Text>
+      <View style={styles.optionsGrid}>
+        {categories.map(({ key, label }) => (
+          <TouchableOpacity
+            key={key}
+            style={styles.optionButton}
+            activeOpacity={0.7}
+            onPress={() => handleCategoryPress(key)}
+          >
+            <Text style={styles.optionText}>{label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -83,34 +94,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 2,
   },
-  optionButtonActive: {
-    backgroundColor: '#AED581',
-    elevation: 4,
-  },
   optionText: {
     fontSize: 16,
     color: '#558B2F',
     fontWeight: '500',
-  },
-  optionTextActive: {
-    color: '#263238',
-    fontWeight: '700',
-  },
-  startButton: {
-    marginTop: 40,
-    backgroundColor: '#33691E',
-    paddingVertical: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
-  },
-  startButtonText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '600',
   },
 });

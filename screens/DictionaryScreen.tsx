@@ -156,8 +156,6 @@ export default function GPCSearch() {
     }
   }
 
-  // Caching unchanged...
-
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>GPC Welsh Dictionary</Text>

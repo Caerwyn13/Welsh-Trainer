@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../App';
 
 type NumbersStackParamList = {
   LearnSelectionScreen: undefined;
@@ -14,7 +13,7 @@ interface NumberItem {
   modern: string;
 }
 
-// Traditional Welsh numbers (vigesimal system) - corrected version
+// Traditional Welsh numbers (vigesimal system)
 const traditional: { [key: number]: string } = {
   1: 'un', 2: 'dau', 3: 'tri', 4: 'pedwar', 5: 'pump', 6: 'chwech', 7: 'saith', 8: 'wyth', 9: 'naw', 10: 'deg',
   11: 'un ar ddeg', 12: 'deuddeg', 13: 'tri ar ddeg', 14: 'pedwar ar ddeg', 15: 'pymtheg', 16: 'un ar bymtheg', 17: 'dau ar bymtheg', 18: 'tri ar bymtheg', 19: 'pedwar ar bymtheg', 20: 'ugain',
@@ -29,7 +28,7 @@ const traditional: { [key: number]: string } = {
   100: 'cant'
 };
 
-// Modern Welsh numbers (decimal system) - proper implementation
+// Modern Welsh numbers (decimal system)
 const modern: { [key: number]: string } = {
   1: 'un', 2: 'dau', 3: 'tri', 4: 'pedwar', 5: 'pump', 6: 'chwech', 7: 'saith', 8: 'wyth', 9: 'naw', 10: 'deg',
   11: 'un deg un', 12: 'un deg dau', 13: 'un deg tri', 14: 'un deg pedwar', 15: 'un deg pump', 16: 'un deg chwech', 17: 'un deg saith', 18: 'un deg wyth', 19: 'un deg naw', 20: 'dau ddeg',
