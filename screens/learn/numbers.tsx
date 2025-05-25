@@ -113,17 +113,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
     minHeight: '100%',
   },
-  backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    zIndex: 1,
-  },
-  backButtonText: {
-    fontSize: 18,
-    color: '#00796B',
-    fontWeight: '600',
-  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',

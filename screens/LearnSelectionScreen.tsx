@@ -26,7 +26,7 @@ export default function LearnSelectionScreen({ navigation }: Props) {
         navigation.navigate('Colours');
         break;
       case 'greetings':
-        // TODO: navigation.navigate('Greetings');
+        navigation.navigate('Greetings');
         break;
       case 'commonPhrases':
         // TODO: navigation.navigate('CommonPhrases');

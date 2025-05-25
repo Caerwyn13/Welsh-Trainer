@@ -10,6 +10,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import LearnSelectionScreen from './screens/LearnSelectionScreen';
 import WelshNumbers from './screens/learn/numbers';
 import WelshColours from './screens/learn/colours';
+import WelshGreetings from './screens/learn/greetings';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -47,6 +48,7 @@ export default function App() {
 
         <Stack.Screen name="Numbers" component={WelshNumbers} />
         <Stack.Screen name="Colours" component={WelshColours} />
+        <Stack.Screen name="Greetings" component={WelshGreetings} />
       </Stack.Navigator>
     </NavigationContainer>
   );
