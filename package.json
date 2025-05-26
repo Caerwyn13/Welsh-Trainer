@@ -1,5 +1,5 @@
 {
-  "name": "welsh-trainer",
+  "name": "welsh-language-trainer",
   "license": "0BSD",
   "version": "1.0.0",
   "main": "index.ts",
@@ -33,6 +33,7 @@
     "react-native-screens": "^4.10.0",
     "react-native-web": "^0.20.0",
     "react-native-webview": "^13.13.5",
+    "welsh-language-trainer": "file:",
     "welsh-trainer": "file:"
   },
   "devDependencies": {

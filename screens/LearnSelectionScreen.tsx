@@ -32,7 +32,7 @@ export default function LearnSelectionScreen({ navigation }: Props) {
         // TODO: navigation.navigate('CommonPhrases');
         break;
       case 'generalVocabulary':
-        // TODO: navigation.navigate('GeneralVocabulary');
+        navigation.navigate('GeneralVocabulary');
         break;
       default:
         // Handle unknown category or incomplete screens

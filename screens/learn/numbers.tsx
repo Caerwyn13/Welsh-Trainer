@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 
 type NumbersStackParamList = {
@@ -59,48 +59,150 @@ const generateNumberList = (): NumberItem[] => {
 const WelshNumbers = () => {
   const navigation = useNavigation<NavigationProp<NumbersStackParamList>>();
   const [useTraditional, setUseTraditional] = useState(true);
+  const [fadeAnim] = useState(new Animated.Value(1));
   const numberList = generateNumberList();
 
+  const animateSystemChange = (isTraditional: boolean) => {
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0.3,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    setTimeout(() => setUseTraditional(isTraditional), 150);
+  };
+
+  const getRangeLabel = (index: number): string => {
+    if (index < 10) return '1-10';
+    if (index < 20) return '11-20';
+    if (index < 30) return '21-30';
+    if (index < 40) return '31-40';
+    if (index < 50) return '41-50';
+    if (index < 60) return '51-60';
+    if (index < 70) return '61-70';
+    if (index < 80) return '71-80';
+    if (index < 90) return '81-90';
+    if (index < 100) return '91-100';
+    return '100';
+  };
+
+  const shouldShowRangeHeader = (index: number): boolean => {
+    return index === 0 || index === 10 || index === 20 || index === 30 || 
+           index === 40 || index === 50 || index === 60 || index === 70 || 
+           index === 80 || index === 90 || index === 99;
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>
-        Welsh Numbers: {useTraditional ? 'Traditional' : 'Modern'} System
-      </Text>
-
-      <View style={styles.langButtons}>
-        <TouchableOpacity
-          style={[styles.langButton, !useTraditional && styles.langButtonActive]}
-          onPress={() => setUseTraditional(false)}
-        >
-          <Text style={[styles.langButtonText, !useTraditional && styles.langButtonTextActive]}>Modern</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.langButton, useTraditional && styles.langButtonActive]}
-          onPress={() => setUseTraditional(true)}
-        >
-          <Text style={[styles.langButtonText, useTraditional && styles.langButtonTextActive]}>Traditional</Text>
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={[styles.header, { position: 'absolute', width: '100%', zIndex: 1 }]}>
+        <Text style={styles.title}>Welsh Numbers</Text>
+        <Text style={styles.subtitle}>Rhifau Cymraeg</Text>
+        <View style={styles.systemBadge}>
+          <Text style={styles.systemBadgeText}>
+            {useTraditional ? '📜 Traditional System' : '🔢 Modern System'}
+          </Text>
+        </View>
       </View>
 
-      <View style={styles.definitionContainer}>
-        <Text style={styles.defHeadword}>Traditional vs Modern Systems</Text>
-        <Text style={styles.definitionText}>
-          Welsh has two number systems: the traditional (vigesimal) system counts in twenties 
-          and is based on the number 20 (ugain). For example, 25 is "pump ar hugain" (five on twenty). 
-          The modern (decimal) system is simpler and follows decimal patterns like "dau ddeg pump" (two ten five) 
-          for 25, similar to how English works.
-        </Text>
-      </View>
-
-      <View style={styles.numbersContainer}>
-        {numberList.map(item => (
-          <View key={item.number} style={styles.matchItem}>
-            <Text style={styles.numberText}>{item.english}</Text>
-            <Text style={styles.welshText}>{useTraditional ? item.traditional : item.modern}</Text>
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: 180 }]} // Add padding to account for header height
+      >
+        <View style={styles.controls}>
+          <Text style={styles.systemLabel}>Number System:</Text>
+          <View style={styles.langButtons}>
+            <TouchableOpacity
+              style={[
+                styles.langButton, 
+                !useTraditional && styles.langButtonActive,
+                styles.buttonShadow
+              ]}
+              onPress={() => animateSystemChange(false)}
+            >
+              <Text style={styles.buttonEmoji}>🔢</Text>
+              <Text style={[styles.langButtonText, !useTraditional && styles.langButtonTextActive]}>
+                Modern
+              </Text>
+              <Text style={[styles.buttonSubtext, !useTraditional && styles.buttonSubtextActive]}>
+                Decimal
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.langButton, 
+                useTraditional && styles.langButtonActive,
+                styles.buttonShadow
+              ]}
+              onPress={() => animateSystemChange(true)}
+            >
+              <Text style={styles.buttonEmoji}>📜</Text>
+              <Text style={[styles.langButtonText, useTraditional && styles.langButtonTextActive]}>
+                Traditional
+              </Text>
+              <Text style={[styles.buttonSubtext, useTraditional && styles.buttonSubtextActive]}>
+                Vigesimal
+              </Text>
+            </TouchableOpacity>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+        </View>
+
+        <View style={styles.definitionContainer}>
+          <Text style={styles.defHeadword}>
+            {useTraditional ? '📜 Traditional (Vigesimal)' : '🔢 Modern (Decimal)'} System
+          </Text>
+          <Text style={styles.definitionText}>
+            {useTraditional 
+              ? 'The traditional Welsh system counts in twenties (ugain). For example, 25 is "pump ar hugain" (five on twenty). Complex numbers like 31 use "un ar ddeg ar hugain" (one on ten on twenty). This ancient system reflects Celtic mathematical traditions.'
+              : 'The modern Welsh system follows decimal patterns like English. For example, 25 is "dau ddeg pump" (two tens five). This simpler system is more commonly used today and easier for learners to understand.'
+            }
+          </Text>
+        </View>
+
+        <Animated.View style={[styles.listContainer, { opacity: fadeAnim }]}>
+          {numberList.map((item, index) => (
+            <View key={item.number}>
+              {shouldShowRangeHeader(index) && (
+                <View style={styles.rangeHeader}>
+                  <Text style={styles.rangeHeaderText}>{getRangeLabel(index)}</Text>
+                </View>
+              )}
+              <View style={[
+                styles.matchItem,
+                { backgroundColor: index % 2 === 0 ? '#fff' : '#f8f9fa' }
+              ]}>
+                <View style={styles.numberContainer}>
+                  <View style={styles.numberCircle}>
+                    <Text style={styles.numberText}>{item.english}</Text>
+                  </View>
+                  <View style={styles.textContainer}>
+                    <Text style={styles.welshText}>
+                      {useTraditional ? item.traditional : item.modern}
+                    </Text>
+                    <Text style={styles.systemIndicator}></Text>
+                      {useTraditional ? 'Traddodiadol' : 'Modern'}
+                    <Text style={styles.systemIndicator}>
+                      {useTraditional ? 'Traditional' : 'Modern'}
+                    </Text>
+                    <Text style={styles.complexityText}>
+                      {(useTraditional ? item.traditional : item.modern).split(' ').length}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          ))}
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -108,85 +210,205 @@ export default WelshNumbers;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  header: {
+    backgroundColor: '#fff',
     paddingTop: 60,
-    backgroundColor: '#FAFAFA',
-    minHeight: '100%',
+    paddingBottom: 24,
+    paddingHorizontal: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    alignItems: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 25,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: '500',
     color: '#004D40',
-    textAlign: 'center',
+    marginBottom: 12,
+  },
+  systemBadge: {
+    backgroundColor: '#e8f5e8',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  systemBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#004D40',
+  },
+  controls: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  systemLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 12,
   },
   langButtons: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
+    gap: 12,
   },
   langButton: {
-    borderWidth: 1,
-    borderColor: '#00796B',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    marginHorizontal: 8,
-    backgroundColor: '#FFFFFF',
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#e9ecef',
   },
   langButtonActive: {
-    backgroundColor: '#00796B',
+    backgroundColor: '#004D40',
+    borderColor: '#004D40',
+    transform: [{ scale: 1.02 }],
+  },
+  buttonShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonEmoji: {
+    fontSize: 20,
+    marginBottom: 4,
   },
   langButtonText: {
-    color: '#00796B',
     fontSize: 16,
     fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
   },
   langButtonTextActive: {
-    color: '#FFFFFF',
+    color: '#fff',
+  },
+  buttonSubtext: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
+  buttonSubtextActive: {
+    color: '#b8e6b8',
   },
   definitionContainer: {
-    marginTop: 30,
-    marginBottom: 40,
-    backgroundColor: '#E8F5E9',
-    borderRadius: 12,
+    marginHorizontal: 24,
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   defHeadword: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#1B5E20',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 12,
+    color: '#004D40',
     textAlign: 'center',
   },
   definitionText: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: '#2E7D32',
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#333',
+    textAlign: 'center',
   },
-  numbersContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  listContainer: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  rangeHeader: {
+    backgroundColor: '#004D40',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    alignSelf: 'center',
+    marginVertical: 12,
+  },
+  rangeHeaderText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   matchItem: {
-    width: '48%',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    backgroundColor: '#E0F2F1',
-    marginBottom: 10,
+    borderRadius: 12,
+    marginVertical: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  numberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  numberCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#004D40',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   numberText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#004D40',
-    textAlign: 'center',
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  textContainer: {
+    flex: 1,
   },
   welshText: {
-    fontSize: 16,
-    color: '#00695C',
-    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  systemIndicator: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+    fontStyle: 'italic',
+  },
+  complexityBadge: {
+    backgroundColor: '#e9ecef',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 28,
+    alignItems: 'center',
+  },
+  complexityText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6c757d',
   },
 });
