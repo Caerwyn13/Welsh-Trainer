@@ -29,7 +29,7 @@ export default function LearnSelectionScreen({ navigation }: Props) {
         navigation.navigate('Greetings');
         break;
       case 'commonPhrases':
-        // TODO: navigation.navigate('CommonPhrases');
+        navigation.navigate('CommonPhrases');
         break;
       case 'generalVocabulary':
         navigation.navigate('GeneralVocabulary');
