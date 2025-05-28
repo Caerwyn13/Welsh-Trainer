@@ -15,6 +15,9 @@ import WelshGreetings from './screens/learn/greetings';
 import WelshVocabulary from './screens/learn/generalVocabulary';
 import WelshPhrases from './screens/learn/commonPhrases';
 import WelshCulture from './screens/learn/culture';
+import GrammarSelectionScreen from './screens/learn/GrammarSelectionScreen'; 
+
+import WelshVerbTenses from './screens/learn/grammar/verbs';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -33,9 +36,11 @@ export type RootStackParamList = {
   Greetings: undefined;
   CommonPhrases: undefined;
   GeneralVocabulary: undefined;
-  Grammar: undefined;
+  GrammarSelection: undefined;
   Culture: undefined;
   Other: undefined;
+
+  WelshVerbTenses: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -58,6 +63,9 @@ export default function App() {
         <Stack.Screen name="CommonPhrases" component={WelshPhrases} />
         <Stack.Screen name="GeneralVocabulary" component={WelshVocabulary} />
         <Stack.Screen name="Culture" component={WelshCulture} />
+        <Stack.Screen name="GrammarSelection" component={GrammarSelectionScreen} />
+
+        <Stack.Screen name="WelshVerbTenses" component={WelshVerbTenses} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -37,6 +37,9 @@ export default function LearnSelectionScreen({ navigation }: Props) {
       case 'culture':
         navigation.navigate('Culture');
         break;
+      case 'grammar':
+        navigation.navigate('GrammarSelection');
+        break;
       default:
         // Handle unknown category or incomplete screens
         navigation.goBack();

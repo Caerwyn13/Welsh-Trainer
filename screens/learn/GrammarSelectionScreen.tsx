@@ -1,13 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Animated, ScrollView, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const WelshGrammarHub = () => {
   const [selectedLevel, setSelectedLevel] = useState('All');
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const navigation = useNavigation<any>();
 
   const grammarSections = [
     {
       title: 'Verb Conjugation',
+      link: 'WelshVerbTenses',
       welsh: 'Rhediad y Ferf',
       level: 'Beginner',
       description: 'Learn how Welsh verbs change form based on tense, person, and number.',
@@ -20,6 +23,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Mutations',
+      link: 'WelshMutations',
       welsh: 'Treigladau',
       level: 'Beginner',
       description: 'Master the systematic changes to the beginning of Welsh words.',
@@ -32,6 +36,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Pronouns',
+      link: 'WelshPronouns',
       welsh: 'Rhagenwau',
       level: 'Beginner',
       description: 'Personal, possessive, and demonstrative pronouns in Welsh.',
@@ -44,6 +49,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Articles & Adjectives',
+      link: 'WelshArticlesAdjectives',
       welsh: 'Bannau ac Ansoddeiriau',
       level: 'Beginner',
       description: 'Definite articles, adjective placement, and agreement rules.',
@@ -56,6 +62,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Prepositions',
+      link: 'WelshPrepositions',
       welsh: 'Arddodiaid',
       level: 'Intermediate',
       description: 'Welsh prepositions and their inflected forms.',
@@ -68,6 +75,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Word Order',
+      link: 'WelshWordOrder',
       welsh: 'Trefn Geiriau',
       level: 'Intermediate',
       description: 'Understanding Welsh sentence structure and word placement.',
@@ -80,6 +88,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Numbers & Time',
+      link: 'WelshNumbersTime',
       welsh: 'Rhifau ac Amser',
       level: 'Beginner',
       description: 'Counting, ordinal numbers, dates, and time expressions.',
@@ -92,6 +101,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Conditional Sentences',
+      link: 'WelshConditionals',
       welsh: 'Brawddegau Amodol',
       level: 'Advanced',
       description: 'If-then constructions and hypothetical situations.',
@@ -104,6 +114,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Reported Speech',
+      link: 'WelshReportedSpeech',
       welsh: 'Araith Anuniongyrchol',
       level: 'Advanced',
       description: 'Converting direct speech to indirect speech in Welsh.',
@@ -116,6 +127,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Subjunctive Mood',
+      link: 'WelshSubjunctive',
       welsh: 'Y Modd Dibynnol',
       level: 'Advanced',
       description: 'Expressing doubt, emotion, and hypothetical situations.',
@@ -128,6 +140,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Relative Clauses',
+      link: 'WelshRelativeClauses',
       welsh: 'Cymalau Perthynol',
       level: 'Intermediate',
       description: 'Connecting clauses with relative pronouns and particles.',
@@ -140,6 +153,7 @@ const WelshGrammarHub = () => {
     },
     {
       title: 'Participles & Gerunds',
+      link: 'WelshParticiples',
       welsh: 'Rhangymeriadau a Berfenwau',
       level: 'Advanced',
       description: 'Non-finite verb forms and their uses.',
@@ -160,6 +174,7 @@ const WelshGrammarHub = () => {
 
   interface GrammarSection {
     title: string;
+    link: string;
     welsh: string;
     level: string;
     description: string;
@@ -207,6 +222,10 @@ const WelshGrammarHub = () => {
     }
   };
 
+  const handleNavigation = (item: GrammarSection): void => {
+    navigation.navigate(item.link);
+  };
+
   const renderGrammarSection = ({ item, index }: { item: GrammarSection; index: number }) => {
     return (
       <TouchableOpacity 
@@ -214,10 +233,7 @@ const WelshGrammarHub = () => {
           styles.grammarCard,
           { backgroundColor: '#fff' }
         ]}
-        onPress={() => {
-          // Navigate to specific grammar section
-          console.log(`Navigate to ${item.title}`);
-        }}
+        onPress={() => handleNavigation(item)}
       >
         <View style={styles.cardHeader}>
           <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
@@ -255,7 +271,10 @@ const WelshGrammarHub = () => {
             <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) }]}>
               <Text style={styles.difficultyText}>{item.difficulty}</Text>
             </View>
-            <TouchableOpacity style={[styles.startButton, { backgroundColor: item.color }]}>
+            <TouchableOpacity 
+              style={[styles.startButton, { backgroundColor: item.color }]}
+              onPress={() => handleNavigation(item)}
+            >
               <Text style={styles.startButtonText}>Start Learning</Text>
             </TouchableOpacity>
           </View>
@@ -266,30 +285,30 @@ const WelshGrammarHub = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { position: 'absolute', width: '100%', zIndex: 1 }]}>
-        <Text style={styles.title}>Welsh Grammar Hub</Text>
-        <Text style={styles.subtitle}>Canolfan Gramadeg Cymraeg</Text>
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{filteredSections.length}</Text>
-            <Text style={styles.statLabel}>Sections</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{grammarSections.reduce((acc, section) => acc + section.topics.length, 0)}</Text>
-            <Text style={styles.statLabel}>Topics</Text>
-          </View>
-        </View>
-      </View>
-
       <Animated.View style={[styles.listContainer, { opacity: fadeAnim }]}>
         <FlatList
           data={filteredSections}
           keyExtractor={(item, index) => `${item.title}-${index}`}
           renderItem={renderGrammarSection}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.listContent, { paddingTop: 180 }]}
+          contentContainerStyle={styles.listContent}
           ListHeaderComponent={
             <View>
+              <View style={styles.header}>
+                <Text style={styles.title}>Welsh Grammar Hub</Text>
+                <Text style={styles.subtitle}>Canolfan Gramadeg Cymraeg</Text>
+                <View style={styles.statsContainer}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{filteredSections.length}</Text>
+                    <Text style={styles.statLabel}>Sections</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{grammarSections.reduce((acc, section) => acc + section.topics.length, 0)}</Text>
+                    <Text style={styles.statLabel}>Topics</Text>
+                  </View>
+                </View>
+              </View>
+
               <View style={styles.filterContainer}>
                 <Text style={styles.filterLabel}>Learning Level:</Text>
                 <ScrollView 
@@ -354,6 +373,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 32,
