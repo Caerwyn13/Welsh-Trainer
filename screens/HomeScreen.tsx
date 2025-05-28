@@ -29,6 +29,14 @@ export default function HomeScreen({ navigation }: Props) {
       <TouchableOpacity
         style={styles.card}
         activeOpacity={0.7}
+        onPress={() => navigation.navigate('Pronunciation')}
+      >
+        <Text style={styles.cardText}>🔤 Pronunciation Guide</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
         onPress={() => navigation.navigate('QuizSetup')}
       >
         <Text style={styles.cardText}>❓ Vocab Quiz</Text>

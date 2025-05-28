@@ -18,7 +18,7 @@ const greetings: Greeting[] = [
   
   // Questions & Responses
   { english: "How are you?", welsh: "Sut wyt ti?", category: "Questions" },
-  { english: "How are you? (formal)", welsh: "Sut ydych chi?", category: "Questions" },
+  { english: "How are you? (formal)", welsh: "Sut dych chi?", category: "Questions" },
   { english: "I'm fine, thanks", welsh: "Da iawn, diolch", category: "Responses" },
   { english: "Very well, thank you", welsh: "Da iawn, diolch yn fawr", category: "Responses" },
   { english: "Not bad", welsh: "Ddim yn ddrwg", category: "Responses" },

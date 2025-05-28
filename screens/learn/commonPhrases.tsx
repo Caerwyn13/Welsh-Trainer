@@ -239,38 +239,10 @@ export default WelshPhrases;
 
 
 const styles = StyleSheet.create({
+  // Layout
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-  },
-  phraseItem: {
-    marginVertical: 4,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  phraseContent: {
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  categoryScroll: {
-    paddingVertical: 8,
-    flexDirection: 'row',
-    gap: 8,
-  },
-  vocabularyContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  vocabularyItem: {
-    padding: 16,
-    borderRadius: 12,
-    marginVertical: 4,
-    marginHorizontal: 8,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
   },
   header: {
     backgroundColor: '#fff',
@@ -279,13 +251,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-    alignItems: 'center',
   },
+  listContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  listContent: {
+    paddingBottom: 24,
+  },
+  filterContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  controls: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+
+  // Typography
   title: {
     fontSize: 32,
     fontWeight: '800',
@@ -298,20 +287,16 @@ const styles = StyleSheet.create({
     color: '#007a33',
     marginBottom: 12,
   },
-  countBadge: {
-    backgroundColor: '#e8f5e8',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
   countText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#007a33',
   },
-  controls: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+  filterLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 12,
   },
   sortLabel: {
     fontSize: 16,
@@ -319,6 +304,71 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 12,
   },
+  english: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  welsh: {
+    fontSize: 16,
+    fontWeight: '500',
+    fontStyle: 'italic',
+    color: '#007a33',
+  },
+  pronunciation: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+
+  // Phrase Items
+  phraseItem: {
+    marginVertical: 4,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  phraseContent: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  textContainer: {
+    flex: 1,
+  },
+
+  // Badges
+  countBadge: {
+    backgroundColor: '#e8f5e8',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  categoryTag: {
+    backgroundColor: '#e8f5e8',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  categoryTagText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#007a33',
+  },
+  difficultyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  difficultyText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#ffffff',
+  },
+
+  // Buttons
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -339,13 +389,6 @@ const styles = StyleSheet.create({
     borderColor: '#007a33',
     transform: [{ scale: 1.02 }],
   },
-  buttonShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
@@ -365,6 +408,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#fff',
+  },
+  buttonShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  // Category Buttons
+  categoryScroll: {
+    paddingVertical: 8,
+    flexDirection: 'row',
+    gap: 8,
   },
   categoryButton: {
     flexDirection: 'row',
@@ -391,103 +448,5 @@ const styles = StyleSheet.create({
   categoryEmoji: {
     fontSize: 16,
     marginRight: 6,
-  },
-  listContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  listContent: {
-    paddingBottom: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginVertical: 2,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  colorInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  colorDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#007a33',
-    marginRight: 16,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  english: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 2,
-  },
-  welsh: {
-    fontSize: 16,
-    color: '#007a33',
-    fontWeight: '500',
-    fontStyle: 'italic',
-  },
-  indexBadge: {
-    backgroundColor: '#e9ecef',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    minWidth: 28,
-    alignItems: 'center',
-  },
-  indexText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6c757d',
-  },
-  filterContainer: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  filterLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 12,
-  },
-  categoryTag: {
-    backgroundColor: '#e8f5e8',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  categoryTagText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#007a33',
-  },
-  difficultyBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  difficultyText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#ffffff',
-  },
-  pronunciation: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
   },
 });

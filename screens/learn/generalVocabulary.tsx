@@ -6,7 +6,7 @@ const WelshVocabulary = () => {
   const [currentSort, setCurrentSort] = useState('none');
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const vocabularyData = [
+const vocabularyData = [
     { english: 'House', welsh: 'Tŷ', category: 'Home', difficulty: 'Beginner' },
     { english: 'Water', welsh: 'Dŵr', category: 'Nature', difficulty: 'Beginner' },
     { english: 'Book', welsh: 'Llyfr', category: 'Education', difficulty: 'Beginner' },
@@ -21,8 +21,23 @@ const WelshVocabulary = () => {
     { english: 'Castle', welsh: 'Castell', category: 'Culture', difficulty: 'Beginner' },
     { english: 'Wonderful', welsh: 'Bendigedig', category: 'Adjectives', difficulty: 'Advanced' },
     { english: 'Grandmother', welsh: 'Nain', category: 'People', difficulty: 'Beginner' },
-    { english: 'Garden', welsh: 'Gardd', category: 'Home', difficulty: 'Beginner' }
-  ];
+    { english: 'Garden', welsh: 'Gardd', category: 'Home', difficulty: 'Beginner' },
+    { english: 'School', welsh: 'Ysgol', category: 'Education', difficulty: 'Beginner' },
+    { english: 'Tree', welsh: 'Coeden', category: 'Nature', difficulty: 'Beginner' },
+    { english: 'Happy', welsh: 'Hapus', category: 'Adjectives', difficulty: 'Beginner' },
+    { english: 'Friend', welsh: 'Ffrind', category: 'People', difficulty: 'Beginner' },
+    { english: 'Door', welsh: 'Drws', category: 'Home', difficulty: 'Beginner' },
+    { english: 'Bird', welsh: 'Aderyn', category: 'Nature', difficulty: 'Intermediate' },
+    { english: 'Small', welsh: 'Bach', category: 'Adjectives', difficulty: 'Beginner' },
+    { english: 'Father', welsh: 'Tad', category: 'People', difficulty: 'Beginner' },
+    { english: 'Window', welsh: 'Ffenestr', category: 'Home', difficulty: 'Intermediate' },
+    { english: 'Flower', welsh: 'Blodyn', category: 'Nature', difficulty: 'Beginner' },
+    { english: 'Student', welsh: 'Myfyriwr', category: 'Education', difficulty: 'Intermediate' },
+    { english: 'Big', welsh: 'Mawr', category: 'Adjectives', difficulty: 'Beginner' },
+    { english: 'Sister', welsh: 'Chwaer', category: 'People', difficulty: 'Intermediate' },
+    { english: 'Chair', welsh: 'Cadair', category: 'Home', difficulty: 'Beginner' },
+    { english: 'Sun', welsh: 'Haul', category: 'Nature', difficulty: 'Beginner' }
+];
 
   const categories = ['All', 'Home', 'Nature', 'People', 'Education', 'Culture', 'Adjectives'];
 
